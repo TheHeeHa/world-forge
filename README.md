@@ -2,19 +2,6 @@
 
 World Forge is an original pixel-art world sandbox simulator. Create terrain, people, kingdoms, buildings, animals, powers, and disasters, then inspect or directly change every simulated person.
 
-## Play locally
-
-Double-click **Run World Forge.cmd**. The game opens at `http://127.0.0.1:5173/`.
-
-For development:
-
-```powershell
-pnpm install
-pnpm dev
-```
-
-Create a production build with `pnpm build`.
-
 ## Current features
 
 - Pixel-art people with visible jobs: rulers, farmers, woodcutters, miners, builders, scholars, mages, healers, guards, scouts, merchants, and children
