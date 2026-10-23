@@ -121,6 +121,8 @@ const LAST = ["Adler", "Bennett", "Brooks", "Campbell", "Carter", "Chen", "Clark
 export const TRAIT_OPTIONS = ["Curious", "Brave", "Kind", "Stubborn", "Patient", "Restless", "Greedy", "Generous", "Solitary", "Joyful", "Cautious", "Ambitious", "Peaceful", "Aggressive", "Fertile", "Genius", "Strong", "Fast", "Lucky"];
 const TRAITS = TRAIT_OPTIONS.slice(0, 12);
 export const ANIMAL_TRAITS = ["Swift", "Strong", "Curious", "Aggressive", "Gentle", "Hardy", "Lucky", "Nocturnal", "Albino", "Clever", "Skittish", "Loyal"];
+export const SHARED_LIFE_TRAITS = [...TRAIT_OPTIONS, "Immortal", "Regeneration", "Giant"];
+export const ANIMAL_TRAIT_OPTIONS = [...new Set([...SHARED_LIFE_TRAITS, ...ANIMAL_TRAITS])];
 const PLACE_A = ["Alder", "Ash", "Black", "Bright", "Cedar", "Clear", "Cold", "Dawn", "Deep", "East", "Fair", "Fox", "Gold", "Grand", "High", "Iron", "Lake", "Long", "Moon", "North", "Oak", "Old", "Pine", "Red", "River", "Silver", "South", "Spring", "Stone", "Storm", "Sun", "West", "White", "Wild", "Wolf"];
 const PLACE_B = ["bay", "bridge", "brook", "burg", "cliff", "cross", "dale", "fall", "field", "ford", "gate", "haven", "heim", "hill", "hold", "keep", "mere", "mont", "moor", "port", "reach", "rest", "rock", "stead", "ton", "vale", "view", "watch", "wick", "wood"];
 const KINGDOM_ENDINGS = ["Realm", "Kingdom", "Dominion", "Union", "Crown", "Empire", "Confederacy", "Highlands", "Republic"];
@@ -206,6 +208,10 @@ function hydrateCreature(world, creature) {
   creature.traits ||= [ANIMAL_TRAITS[(Number(String(creature.id || "").replace(/\D/g, "")) * 7) % ANIMAL_TRAITS.length]];
   creature.maxHealth ??= CREATURE_TYPES[creature.type]?.health || creature.health || 100;
   creature.health ??= creature.maxHealth;
+  creature.intelligence ??= creature.traits.includes("Clever") ? 30 : 8;
+  creature.magic ??= 0; creature.strength ??= Math.round(creature.maxHealth / 3);
+  creature.speed ??= creature.traits.includes("Swift") ? 55 : 30; creature.luck ??= 20;
+  creature.immortal ??= creature.traits.includes("Immortal"); creature.regeneration ??= creature.traits.includes("Regeneration"); creature.isGiant ??= creature.traits.includes("Giant");
   creature.age ??= 0; creature.dx ??= 0; creature.dy ??= 0; creature.animTick ??= 0;
   creature.emote ??= null; creature.emoteUntil ??= 0;
   return creature;
@@ -1104,10 +1110,10 @@ export function simulateWorld(world) {
 
   world.buildings = world.buildings.filter((b) => b.health > 0);
   for (const creature of world.creatures) {
-    creature.age += 1; creature.animTick = (creature.animTick || 0) + 1; if (creature.emoteUntil <= world.ticks) creature.emote = null;
+    if (!creature.immortal) creature.age += 1; creature.animTick = (creature.animTick || 0) + 1; if (creature.emoteUntil <= world.ticks) creature.emote = null;
     const data = CREATURE_TYPES[creature.type] || { habitat: creature.type === "raider" ? "air" : "land", predator: creature.type === "raider" };
     if (world.possessedId !== creature.id) {
-      const pace = creature.traits?.includes("Swift") ? 2 : creature.type === "rabbit" ? 3 : 5;
+      const pace = creature.traits?.includes("Swift") || creature.traits?.includes("Fast") ? 2 : creature.type === "rabbit" ? 3 : 5;
       if (creature.age % pace === 0) { creature.dx = Math.floor(Math.random() * 3) - 1; creature.dy = Math.floor(Math.random() * 3) - 1; }
       const next = tileAt(world, creature.x + creature.dx, creature.y + creature.dy), flies = data.habitat === "air", swims = data.habitat === "water";
       if (!next || next.type === "void") { creature.x += creature.dx; creature.y += creature.dy; creature.health = 0; creature.voidDeath = true; creature.deathCause = "the void"; }
@@ -1115,9 +1121,11 @@ export function simulateWorld(world) {
     }
     if (creature.type === "moth") { const tile = tileAt(world, creature.x, creature.y); if (tile) tile.fertility = Math.min(1, tile.fertility + .002); }
     if ((data.predator || creature.traits?.includes("Aggressive")) && creature.age % 4 === 0) { const prey = world.people.map((person) => ({ person, d: distance(person, creature) })).filter((item) => item.d < 1.5).sort((a, b) => a.d - b.d)[0]?.person; if (prey) { prey.health -= (creature.type === "bear" ? 9 : creature.type === "wolf" ? 5 : 4) + (creature.traits?.includes("Strong") ? 3 : 0); prey.expression = "shocked"; if (prey.health <= 0) prey.deathCause = `an attack by ${creature.name}`; creature.emote = "💢"; creature.emoteUntil = world.ticks + 4; } }
+    if (creature.regeneration) creature.health = Math.min(creature.maxHealth, creature.health + 1.2);
+    if (creature.immortal && creature.health <= 0 && !creature.voidDeath) { creature.health = Math.max(1, creature.maxHealth * .25); creature.deathCause = null; }
   }
   for (const creature of world.creatures.filter((item) => item.health <= 0)) world.effects.push({ id: `fx${world.nextId++}`, type: "death", x: creature.x, y: creature.y, voidDeath: Boolean(creature.voidDeath), until: world.ticks + 8 });
-  world.creatures = world.creatures.filter((c) => c.health > 0 && c.age < 1200);
+  world.creatures = world.creatures.filter((c) => c.health > 0 && (c.immortal || c.age < 1200));
   if (![...world.people, ...world.creatures].some((item) => item.id === world.possessedId)) world.possessedId = null;
   for (const vehicle of world.vehicles) {
     vehicle.age += 1; const data = VEHICLE_TYPES[vehicle.type], faction = world.factions.find((item) => item.id === vehicle.factionId), isEnemy = (factionId) => factionId && factionId !== vehicle.factionId && (faction?.relations[factionId] || 0) < -35;

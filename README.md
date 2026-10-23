@@ -50,7 +50,8 @@ Create a production build with `pnpm build`.
 - Visible colored territory borders and instant void death for walkers, wildlife, and vehicles that leave the world
 - Organic resident-driven territory: people must stand on adjacent unclaimed land until the adjustable claim timer completes, and frontier settlers can found new villages
 - Large collision-checked name pools with gender-appropriate first names; most children inherit their father's surname while some inherit another family name or receive a new surname
-- Editable animal traits, plus visibly rendered tools, weapons, and armor with an always-present equipment panel in every person dossier
+- Animals can use every shared personality and divine trait—including immortality, regeneration, and giant size—while keeping all animal-only traits
+- Visibly rendered tools, weapons, and armor with an always-present equipment panel in every person dossier
 - Direct tank, plane, and patrol-boat placement, with vehicle dossiers that can reassign command to any kingdom or leave the vehicle independent
 - Distinct warships and aircraft carriers that fight enemy vessels, bombard coastal land, and show shell or carrier-air-strike animations
 - Clickable lovers, parents, children, friends, enemies, and rulers that immediately start camera following

@@ -175,7 +175,7 @@ function drawPerson(ctx, person, faction, tileW, tileH, selected, claimTime = 20
 
 function drawCreature(ctx, creature, tileW, tileH, selected) {
   const x = (creature.x + .5) * tileW, phase = (creature.animTick || creature.age || 0) % 4;
-  const s = Math.max(1, Math.floor(Math.min(tileW, tileH) / 6)), y = (creature.y + .65) * tileH - (phase === 1 ? s : 0);
+  const s = Math.max(1, Math.floor(Math.min(tileW, tileH) / 6)) * (creature.isGiant ? 1.4 : 1), y = (creature.y + .65) * tileH - (phase === 1 ? s : 0);
   if (selected) { ctx.strokeStyle = "#fff3a3"; ctx.lineWidth = 1; ctx.strokeRect(x - 5 * s, y - 7 * s, 10 * s, 9 * s); }
   const body = (color, dark, long = false) => { pixel(ctx, x - 4 * s, y - 3 * s, (long ? 7 : 6) * s, 4 * s, color); pixel(ctx, x + 2 * s, y - 5 * s, 3 * s, 4 * s, color); pixel(ctx, x + 4 * s, y - 4 * s, s, s, dark); pixel(ctx, x - 3 * s, y + (phase % 2 ? 0 : s), s, 2 * s, dark); pixel(ctx, x + s, y + (phase % 2 ? s : 0), s, 2 * s, dark); };
   if (creature.type === "moth") { pixel(ctx, x - 3 * s, y - 3 * s - phase * .3 * s, 3 * s, 3 * s, "#f2d97b"); pixel(ctx, x, y - 3 * s + phase * .3 * s, 3 * s, 3 * s, "#d4a9ef"); pixel(ctx, x - .5 * s, y - 2 * s, s, 4 * s, "#493e35"); }
